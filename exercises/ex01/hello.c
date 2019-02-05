@@ -1,10 +1,19 @@
 #include <stdio.h>
 
 int main() {
-    int x = 5;
-    // printf("Hello, World!\n");
-    int y = x + 1;
-    printf("%i\n", y);
+    int a = 3;
+    int b = 4;
+    int c = a + b;
+    printf("c is %d\n", c);
+    if (c%2 == 0) {
+        printf("c is even\n");
+    } else {
+        printf("c is odd\n");
+    }
+    // int x = 5;
+    // // printf("Hello, World!\n");
+    // int y = x + 1;
+    // printf("%i\n", y);
     return 0;
 }
  /*

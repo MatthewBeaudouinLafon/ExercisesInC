@@ -11,9 +11,11 @@ _main:                                  ## @main
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register %rbp
 	leaq	L_.str(%rip), %rdi
-	movl	$6, %esi
+	movl	$7, %esi
 	xorl	%eax, %eax
 	callq	_printf
+	leaq	L_str(%rip), %rdi
+	callq	_puts
 	xorl	%eax, %eax
 	popq	%rbp
 	retq
@@ -21,7 +23,10 @@ _main:                                  ## @main
                                         ## -- End function
 	.section	__TEXT,__cstring,cstring_literals
 L_.str:                                 ## @.str
-	.asciz	"%i\n"
+	.asciz	"c is %d\n"
+
+L_str:                                  ## @str
+	.asciz	"c is odd"
 
 
 .subsections_via_symbols
