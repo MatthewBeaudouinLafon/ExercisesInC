@@ -61,7 +61,13 @@ returns: character '0' to '9'
 */
 char itoc(int i) {
     //TODO: Fill this in, with an appropriate assertion.
-    return '0';
+    char integers[] = "0123456789";
+    
+    if (i < 0 || i > 9) {
+        puts("Integer out of bounds. Should be between 0 and 9.");
+    }
+
+    return integers[i];
 }
 
 /* add_digits: Adds two decimal digits, returns the total and carry.
