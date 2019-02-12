@@ -64,7 +64,8 @@ char itoc(int i) {
     char integers[] = "0123456789";
     
     if (i < 0 || i > 9) {
-        puts("Integer out of bounds. Should be between 0 and 9.");
+        printf("Integer out of bounds. %i should be between 0 and 9.\n", i);
+        exit(1);
     }
 
     return integers[i];
@@ -83,7 +84,9 @@ carry: pointer to char
 
 */
 void add_digits(char a, char b, char c, char *total, char *carry) {
-    //TODO: Fill this in.
+    int sum = ctoi(a) + ctoi(b) + ctoi(c);
+    *carry = itoc((sum - (sum % 10)) / 10);
+    *total = itoc(sum % 10);
 }
 
 /* Define a type to represent a BigInt.
