@@ -33,8 +33,15 @@ s: string
 returns: string
 */
 char *reverse_string(char *s) {
-    //TODO: Fill this in.
-    return "";
+    size_t s_len = strlen(s);
+
+    char* rev_s = malloc(sizeof(char) * (s_len + 1));
+    rev_s[s_len] = '\0';
+    for (size_t i = 0; i < s_len; i++) {
+        rev_s[s_len - i - 1] = s[i];
+    }
+
+    return rev_s;
 }
 
 /* ctoi: Converts a character to integer.
@@ -153,6 +160,7 @@ BigInt make_bigint(char *s) {
 void test_reverse_string() {
     char *s = "123";
     char *t = reverse_string(s);
+
     if (strcmp(t, "321") == 0) {
         printf("reverse_string passed\n");
     } else {
