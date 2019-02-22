@@ -4,6 +4,7 @@
 a.out
 *~
 *.py[co]
+*.DS_Store
 
 
 exercises/ex05/data
