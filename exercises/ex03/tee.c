@@ -64,6 +64,17 @@ int main(int argc, char* argv[]) {
 Lots of people have different solutions that do slightly different things. 
 Otherwise it was a pretty smooth implementation process. Head First C definitely
 helped a lot with the flag handling.
+I tried looking into interrupt handling, but I had a hard time finding something
+that clearly ignored an interrupt, instead of handling it. I only found SIG_IGN 
+after peaking at Apple's implementation.
 
+4. They seem to use malloc for the buffer. I considered it, but chose against it
+because I wasn't sure how to determine the length of the buffer without doing
+some crazy character by character read to find the line length.
+Wait actually Apple allocates a fixed size buffer (8*1024), so I'm not sure why 
+they did that instead of allocating that chunk on the stack. 
+
+Their error handling is clearly significanlty more robust. I don't feel *too*
+bad about it because I don't really know what errors they are handling.
 
 */
