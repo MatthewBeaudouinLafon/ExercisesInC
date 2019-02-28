@@ -1,4 +1,7 @@
 #include "trout.h"
+#include "util.h"
+
+extern int datalen;
 
 int main (int argc, char **argv)
 {
@@ -11,7 +14,7 @@ int main (int argc, char **argv)
     switch (c) {
     case 'm':
       if ( (max_ttl = atoi(optarg)) <= 1) {
-	err_quit ("invalid -m value");
+	      err_quit ("invalid -m value");
       }
       break;
     default:

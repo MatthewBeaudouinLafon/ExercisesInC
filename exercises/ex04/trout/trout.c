@@ -1,4 +1,4 @@
-#include <trout.h>
+#include "trout.h"
 #include <util.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
@@ -6,6 +6,8 @@
 #include <netinet/ip_icmp.h>
 #include <netinet/udp.h>
 #include <string.h>
+
+int datalen = sizeof (Rec);
 
 /* variables we might want to configure */
 int max_ttl = 30;
@@ -210,7 +212,7 @@ double time_to_double (Timeval *time)
 void print_report ()
 {
   int stat;
-  double rtt, krtt;
+  double rtt; //, krtt;
   char str[NI_MAXHOST];
       
   stat = sock_cmp_addr (sarecv, salast, salen);
@@ -273,7 +275,7 @@ void send_dgram (int ttl)
 
 int send_probes (int ttl) 
 {
-  int i, probe, code, done;
+  int probe, code, done;
 
   Setsockopt (sendfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(int));
   bzero (salast, salen);
