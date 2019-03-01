@@ -23,7 +23,7 @@ char *strfilter2(char *string, char *letters) {
     char *dest = buffer;
     char c;
 
-    while (c = *string++) {
+    while ((c = *string++)) {
         char *ptr = strchr(letters, c);
         if (ptr) {
             *dest++ = c;
@@ -46,22 +46,29 @@ char *strfilter3(char *string, char *letters) {
             buffer[j++] = string[i];
         }
     }
-    return buffer;
+    return strdup(buffer);
 }
 
 char *strfilter4(char *string, char *letters) {
     char buffer[100];
     char c;
+    char dumb_buff[2];
+    dumb_buff[1] = '\0';
+    puts(buffer);
+    printf("length: %i\n", strlen(buffer));
+    puts("begin!");
 
-    while (c = *string++) {
+    while ((c = *string++)) {
         char *ptr = strchr(letters, c);
         if (ptr) {
-            strcat(buffer, c);
+            dumb_buff[0] = c;
+            strcat(buffer, dumb_buff);
+            puts(buffer);
         }
     }
-    int length = sizeof(buffer);
+    int length = strlen(buffer) + 1;
     char *res = (char *) malloc (length * sizeof(char));
-    strcpy(buffer, res);
+    strcpy(res, buffer);
     return res;
 }
 
