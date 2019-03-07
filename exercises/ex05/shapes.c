@@ -60,8 +60,18 @@ returns: new Rectangle; use free_rectangle to free
 */
 Rectangle *make_rectangle(Point *corner, double width, double height) {
     // FILL THIS IN
+    Point* new_corner = malloc(sizeof(Point));
+    *new_corner = *corner;
+    Rectangle* rect = malloc(sizeof(Rectangle));
+    rect->corner = new_corner;
+    rect->height = height;
+    rect->width = width;
+
     // What are the pros and cons of making a copy of corner?
-    return NULL;
+    // Pros: less memory, two rectangles could move together
+    // Cons: "C is like a powerful shotgun that shoots forward and backwards at
+    // the same time"
+    return rect;
 }
 
 /* Return string representation
@@ -83,6 +93,8 @@ rectangle: Rectangle
 */
 void free_rectangle(Rectangle *rectangle) {
     // FILL THIS IN
+    free(rectangle->corner);
+    free(rectangle);
 }
 
 /* Check whether a point is inside a rectangle.
@@ -95,6 +107,10 @@ returns: 1 if the point is in the rectangle, else 0
 */
 int point_in_rect(Point *p, Rectangle *rect) {
     // FILL THIS IN
+    if ((rect->corner->x <= p->x) && (p->x <= (rect->corner->x + rect->width)) \
+        && (rect->corner->y <= p->y) && (p->y <= (rect->corner->y + rect->height))) {
+            return 1;
+        }
 
     return 0;
 }
