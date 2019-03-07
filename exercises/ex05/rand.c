@@ -79,6 +79,7 @@ float my_random_float2()
 double my_random_double()
 {
     // TODO: fill this in
+    return 0.0;
 }
 
 // return a constant (this is a dummy function for time trials)
