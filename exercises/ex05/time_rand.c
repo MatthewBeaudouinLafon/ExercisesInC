@@ -76,4 +76,23 @@ main(int argc, char *argv[])
 
     time = time_func(iters, random_float);
     printf("%f ms \t random_float\n", time);
+
+    time = time_func(iters, my_random_double);
+    printf("%lf ms \t my_random_double\n", time);
+
+    time = time_func(iters, random_double);
+    printf("%lf ms \t random_double\n", time);
+
+/* 
+181.227000 ms    dummy
+422.948000 ms    dummy2
+423.306000 ms    random_float
+574.506000 ms    my_random_float  <-- seems like the asm helps a lot
+1508.662000 ms   my_random_float2
+417.409000 ms    random_float
+
+1831.099000 ms   my_random_double  <-- slower
+491.333000 ms    random_double  <-- faster
+*/
+
 }

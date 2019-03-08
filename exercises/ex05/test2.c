@@ -12,7 +12,7 @@ int main (int argc, char *argv[])
     srandom (time (NULL));
 
     for (i=0; i<10000; i++) {
-        x = my_random_float();
+        x = my_random_float2();
         printf ("%lf\n", x);
     }
 
