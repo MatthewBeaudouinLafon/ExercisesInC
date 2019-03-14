@@ -54,8 +54,14 @@ void print_list(Node **list) {
 * returns: int or -1 if the list is empty
 */
 int pop(Node **list) {
-    // FILL THIS IN!
-    return 0;
+    if (*list == NULL) {
+        return -1;
+    }
+    Node *head = *list;
+    int head_val = head->val;
+    *list = head->next;
+    free(head);
+    return head_val;
 }
 
 
@@ -65,7 +71,9 @@ int pop(Node **list) {
 * val: value to add
 */
 void push(Node **list, int val) {
-    // FILL THIS IN!
+    Node *original_head = *list;
+    Node *new_head = make_node(val, original_head);
+    *list = new_head;
 }
 
 
@@ -79,7 +87,29 @@ void push(Node **list, int val) {
 * returns: number of nodes removed
 */
 int remove_by_value(Node **list, int val) {
-    // FILL THIS IN!
+    if (*list == NULL) {
+        return 0;
+    }
+
+    Node *prev_node = NULL;
+    Node *current_node = *list;
+
+    while (current_node != NULL) {
+        if (current_node->val == val) {
+            if (prev_node == NULL) {
+                // head has value
+                pop(list);
+            } else {
+                // any other node has value
+                prev_node->next = current_node->next;
+                free(current_node);
+            }
+            return 1;
+        }
+        prev_node = current_node;
+        current_node = current_node->next;
+    }
+
     return 0;
 }
 
@@ -91,7 +121,25 @@ int remove_by_value(Node **list, int val) {
 * list: pointer to pointer to Node
 */
 void reverse(Node **list) {
-    // FILL THIS IN!
+    Node *prev_node = NULL;
+    Node *current_node = *list;
+    Node *next_node = NULL;
+
+    if (*list == NULL) {
+        return;
+    }
+
+    // Switch be pointer direction between current and previous node
+    while (current_node != NULL) {
+        next_node = current_node->next;
+
+        current_node->next = prev_node;
+
+        prev_node = current_node;
+        current_node = next_node;
+    }
+    
+    *list = prev_node;
 }
 
 
@@ -104,18 +152,25 @@ int main() {
     Node **list = &head;
     print_list(list);
 
+    puts("\npop");
     int retval = pop(list);
     print_list(list);
 
+    puts("\npush popped value + 10");
     push(list, retval+10);
     print_list(list);
 
-    remove_by_value(list, 3);
+    puts("\nremove 3");
+    retval = remove_by_value(list, 3);
     print_list(list);
+    printf("returned %i\n", retval);
 
-    remove_by_value(list, 7);
+    puts("\nremove 7");
+    retval = remove_by_value(list, 7);
     print_list(list);
+    printf("returned %i\n", retval);
 
+    puts("\nreverse");
     reverse(list);
     print_list(list);
 }

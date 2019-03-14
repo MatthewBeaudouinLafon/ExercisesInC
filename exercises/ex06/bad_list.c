@@ -54,6 +54,11 @@ void print_list(Node **list) {
 * returns: int or -1 if the list is empty
 */
 int pop(Node **list) {
+    if (*list == NULL) {
+        fprintf(stderr, "list is empty\n");
+        return NULL;
+    }
+
     int retval;
     Node *head = *list;
 
@@ -80,5 +85,6 @@ int main() {
     print_list(list);
 
     retval = pop(list);
+    print_list(list);
     print_list(list);
 }
