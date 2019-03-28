@@ -61,15 +61,15 @@ Value *make_string_value(char *s)
 void print_value (Value *value)
 {
     if (value == NULL) {
-        printf ("%p", value);
+        printf ("%p\n", value);
         return;
     }
     switch (value->type) {
         case INT:
-        printf ("%d", value->i);
+        printf ("%d\n", value->i);
         break;
         case STRING:
-        printf ("%s", value->s);
+        printf ("%s\n", value->s);
         break;
     }
 }
@@ -179,7 +179,7 @@ int hash_hashable(Hashable *hashable)
 int equal_int (void *ip, void *jp)
 {
     // FILL THIS IN!
-    return 0;
+    return *((int*) ip) == *((int*) jp);
 }
 
 
@@ -193,7 +193,12 @@ int equal_int (void *ip, void *jp)
 int equal_string (void *s1, void *s2)
 {
     // FILL THIS IN!
-    return 0;
+    int res = strcmp((char*) s1, (char*) s2);
+    if (res == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 
@@ -207,8 +212,7 @@ int equal_string (void *s1, void *s2)
 */
 int equal_hashable(Hashable *h1, Hashable *h2)
 {
-    // FILL THIS IN!
-    return 0;
+    return h1->equal(h1->key, h2->key);
 }
 
 
@@ -265,6 +269,11 @@ Node *make_node(Hashable *key, Value *value, Node *next)
 /* Prints a Node. */
 void print_node(Node *node)
 {
+    if (node == NULL) {
+        puts("null node");
+        return;
+    }
+    puts("  print_node");
     print_hashable(node->key);
     printf ("value %p\n", node->value);
     printf ("next %p\n", node->next);
@@ -274,7 +283,9 @@ void print_node(Node *node)
 /* Prints all the Nodes in a list. */
 void print_list(Node *node)
 {
+    // puts("  print_list");
     if (node == NULL) {
+        puts("end node");
         return;
     }
     print_hashable(node->key);
@@ -286,6 +297,12 @@ void print_list(Node *node)
 /* Prepends a new key-value pair onto a list.
 
 This is actually a synonym for make_node.
+
+Note: It really feels like this function should change the list in place.
+Note 2: The more I think about it, the less I like this api. 
+    It's like appending on an array by calling list[-1].append()
+    (but I don't care quite enough to refactor it)
+    ((though I would if this weren't a homework))
 */
 Node *prepend(Hashable *key, Value *value, Node *rest)
 {
@@ -297,6 +314,13 @@ Node *prepend(Hashable *key, Value *value, Node *rest)
 Value *list_lookup(Node *list, Hashable *key)
 {
     // FILL THIS IN!
+    Node *node = list; 
+    while (node != NULL) {
+        if (key->equal(key, node->key)) {
+            return node->value;
+        }
+        node = node->next;
+    }
     return NULL;
 }
 
@@ -328,10 +352,10 @@ Map *make_map(int n)
 void print_map(Map *map)
 {
     int i;
-
     for (i=0; i<map->n; i++) {
         if (map->lists[i] != NULL) {
-            printf ("%d\n", i);
+            // puts("  a list");
+            printf ("list #%d\n", i);
             print_list (map->lists[i]);
         }
     }
@@ -342,6 +366,29 @@ void print_map(Map *map)
 void map_add(Map *map, Hashable *key, Value *value)
 {
     // FILL THIS IN!
+    int index = hash_hashable(key) % map->n;
+    // printf("index computed: %i\n", index);
+
+    Node *head = map->lists[index];
+
+    // printf("not yet added:");
+    // print_node(head);
+
+    // puts("---prepend---");
+    // puts("--key--");
+    // print_hashable(key);
+    // puts("-value-");
+    // print_value(value);
+    // puts("-list-");
+    // printf("head pointer %p\n", head);
+    // print_list(head);
+    // puts("---end prepend---");
+    head = prepend(key, value, head);
+
+    map->lists[index] = head;
+
+    // printf("just added node:");
+    // print_node(head);
 }
 
 
@@ -349,7 +396,8 @@ void map_add(Map *map, Hashable *key, Value *value)
 Value *map_lookup(Map *map, Hashable *key)
 {
     // FILL THIS IN!
-    return NULL;
+    Node *list = map->lists[hash_hashable(key) % map->n];
+    return list_lookup(list, key);
 }
 
 
@@ -364,44 +412,64 @@ void print_lookup(Value *value)
 
 int main ()
 {
+    // 1       -> 17
+    // "apple" -> "Orange"
+    // 2       ->
+
     Hashable *hashable1 = make_hashable_int (1);
     Hashable *hashable2 = make_hashable_string ("Apple");
     Hashable *hashable3 = make_hashable_int (2);
 
     // make a list by hand
+    puts("\n--- Make a node");
     Value *value1 = make_int_value (17);
     Node *node1 = make_node(hashable1, value1, NULL);
     print_node (node1);
 
+    puts("\n--- Make and print list");
     Value *value2 = make_string_value ("Orange");
     Node *list = prepend(hashable2, value2, node1);
     print_list (list);
 
     // run some test lookups
+    puts("\n--- Should find 17");
     Value *value = list_lookup (list, hashable1);
     print_lookup(value);
 
+    puts("\n--- Should find 'Orange'");
     value = list_lookup (list, hashable2);
     print_lookup(value);
 
+    puts("\n--- Shouldn't find anything");
     value = list_lookup (list, hashable3);
     print_lookup(value);
 
     // make a map
     Map *map = make_map(10);
-    map_add(map, hashable1, value1);
-    map_add(map, hashable2, value2);
-
-    printf ("Map\n");
+    puts("\n--- map with no items");
     print_map(map);
 
+    map_add(map, hashable1, value1);
+    puts("\n--- map with 1 item");
+    print_map(map);
+
+    map_add(map, hashable2, value2);
+
+    // printf ("\nMap\n");
+    puts("\n--- map with 2 items");
+    print_map(map);
+
+    // NOTE: looks like adding kv isn't working
     // run some test lookups
+    puts("\n--- Should find 17");
     value = map_lookup(map, hashable1);
     print_lookup(value);
 
+    puts("\n--- Should find 'Orange'");
     value = map_lookup(map, hashable2);
     print_lookup(value);
 
+    puts("\n--- Shouldn't find anything");
     value = map_lookup(map, hashable3);
     print_lookup(value);
 
