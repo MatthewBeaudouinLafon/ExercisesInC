@@ -53,6 +53,11 @@ Value *make_string_value(char *s)
 }
 
 
+void free_value(Value *val) {
+    free(val);
+}
+
+
 /* Prints a value object.
 *
 * value: pointer to Value
@@ -111,6 +116,11 @@ Hashable *make_hashable(void *key,
     hashable->hash = hash;
     hashable->equal = equal;
     return hashable;
+}
+
+
+void free_hashable(Hashable* hashable) {
+    free(hashable);
 }
 
 
@@ -285,11 +295,12 @@ void print_list(Node *node)
 {
     // puts("  print_list");
     if (node == NULL) {
-        puts("end node");
+        puts("end node\n");
         return;
     }
     print_hashable(node->key);
     printf ("value %p\n", node->value);
+    puts("-----");
     print_list(node->next);
 }
 
@@ -324,24 +335,43 @@ Value *list_lookup(Node *list, Hashable *key)
     return NULL;
 }
 
+void free_list(Node *node) {
+    if (node == NULL) {
+        return;
+    }
+    Node *next_node;
+    next_node = node->next;
+
+    //// Not up to the node to free its contents (as I learned the hard way)
+    // free_hashable(node->key);
+    // free_value(node->value);
+
+    free(node);
+
+    free_list(next_node);
+}
+
 
 // MAP: a map is an array of lists of key-value pairs
 
 typedef struct map {
-    int n;
+    int size_limit;
+    int size;
     Node **lists;
 } Map;
 
 
 /* Makes a Map with n lists. */
-Map *make_map(int n)
+Map *make_map(int size_limit)
 {
     int i;
 
     Map *map = (Map *) malloc (sizeof (Map));
-    map->n = n;
-    map->lists = (Node **) malloc (sizeof (Node *) * n);
-    for (i=0; i<n; i++) {
+    map->size = 0;
+    map->size_limit = size_limit;
+    map->lists = (Node **) malloc (sizeof (Node *) * size_limit);
+
+    for (i = 0; i < size_limit; i++) {
         map->lists[i] = NULL;
     }
     return map;
@@ -351,9 +381,13 @@ Map *make_map(int n)
 /* Prints a Map. */
 void print_map(Map *map)
 {
+    printf("map of size %i and max_size %i\n", map->size, map->size_limit);
     int i;
-    for (i=0; i<map->n; i++) {
-        if (map->lists[i] != NULL) {
+    for (i=0; i<map->size_limit; i++) {
+        if (map->lists[i] == NULL) {
+            printf ("list #%d\n", i);
+            puts("empty list\n");
+        } else {
             // puts("  a list");
             printf ("list #%d\n", i);
             print_list (map->lists[i]);
@@ -362,11 +396,49 @@ void print_map(Map *map)
 }
 
 
+void free_map(Map *map)
+{
+    int i;
+    for (i = 0; i < map->size_limit; i++) {
+        free_list(map->lists[i]);
+    }
+
+    free(map->lists);
+    free(map);
+}
+
+
 /* Adds a key-value pair to a map. */
-void map_add(Map *map, Hashable *key, Value *value)
+void map_add(Map **map_ptr, Hashable *key, Value *value)
 {
     // FILL THIS IN!
-    int index = hash_hashable(key) % map->n;
+    Map *map = *map_ptr;
+    if (map->size == map->size_limit) {
+        Map *new_map = make_map(map->size_limit * 2);
+        // Copy all items over
+        int i;
+        for (i = 0; i < map->size_limit; i++) { // for all items in map
+            Node *node = map->lists[i];
+            while (node != NULL) {
+                // print_hashable(key);
+                // print_value(value);
+                // puts("");
+                // print_map(new_map);
+                // puts("good?");
+                map_add(&new_map, node->key, node->value);
+
+                node = node->next;
+            }
+        }
+
+        free_map(map);
+        *map_ptr = new_map;
+        map = new_map;
+        // puts("added");
+        // find a way to change map in place? return map?
+    }
+
+    int index = hash_hashable(key) % map->size_limit;
     // printf("index computed: %i\n", index);
 
     Node *head = map->lists[index];
@@ -386,6 +458,7 @@ void map_add(Map *map, Hashable *key, Value *value)
     head = prepend(key, value, head);
 
     map->lists[index] = head;
+    map->size += 1;
 
     // printf("just added node:");
     // print_node(head);
@@ -396,7 +469,7 @@ void map_add(Map *map, Hashable *key, Value *value)
 Value *map_lookup(Map *map, Hashable *key)
 {
     // FILL THIS IN!
-    Node *list = map->lists[hash_hashable(key) % map->n];
+    Node *list = map->lists[hash_hashable(key) % map->size_limit];
     return list_lookup(list, key);
 }
 
@@ -415,19 +488,23 @@ int main ()
     // 1       -> 17
     // "apple" -> "Orange"
     // 2       ->
+    // 13       -> 42
 
     Hashable *hashable1 = make_hashable_int (1);
     Hashable *hashable2 = make_hashable_string ("Apple");
     Hashable *hashable3 = make_hashable_int (2);
+    Hashable *hashable4 = make_hashable_int (13);
+
+    Value *value1 = make_int_value (17);
+    Value *value2 = make_string_value ("Orange");
+    Value *value3 = make_int_value (42);
 
     // make a list by hand
     puts("\n--- Make a node");
-    Value *value1 = make_int_value (17);
     Node *node1 = make_node(hashable1, value1, NULL);
     print_node (node1);
 
     puts("\n--- Make and print list");
-    Value *value2 = make_string_value ("Orange");
     Node *list = prepend(hashable2, value2, node1);
     print_list (list);
 
@@ -445,15 +522,15 @@ int main ()
     print_lookup(value);
 
     // make a map
-    Map *map = make_map(10);
+    Map *map = make_map(2);
     puts("\n--- map with no items");
     print_map(map);
 
-    map_add(map, hashable1, value1);
+    map_add(&map, hashable1, value1);
     puts("\n--- map with 1 item");
     print_map(map);
 
-    map_add(map, hashable2, value2);
+    map_add(&map, hashable2, value2);
 
     // printf ("\nMap\n");
     puts("\n--- map with 2 items");
@@ -471,6 +548,28 @@ int main ()
 
     puts("\n--- Shouldn't find anything");
     value = map_lookup(map, hashable3);
+    print_lookup(value);
+
+
+    // Testing resize
+    puts("\n--- add value, should resize");
+    map_add(&map, hashable3, value3);
+    print_map(map);
+
+    puts("\n--- Should find 17");
+    value = map_lookup(map, hashable1);
+    print_lookup(value);
+
+    puts("\n--- Should find 'Orange'");
+    value = map_lookup(map, hashable2);
+    print_lookup(value);
+
+    puts("\n--- Should find 42");
+    value = map_lookup(map, hashable3);
+    print_lookup(value);
+
+    puts("\n--- Shouldn't find anything");
+    value = map_lookup(map, hashable4);
     print_lookup(value);
 
     return 0;
