@@ -14,10 +14,7 @@ License: MIT License https://opensource.org/licenses/MIT
 #include <sys/types.h>
 #include <sys/wait.h>
 
-/*
-2. Stack and heap get copied on fork, but they share different physical spaces.
-However, they have the same virtual addresses.
-*/
+
 
 // errno is an external global variable that contains
 // error information
@@ -110,6 +107,11 @@ int main(int argc, char *argv[])
     stop = get_seconds();
 
     printf("global: %i, static: %i, heap: %i\n", global_var, static_var, *heap_var_ptr);
+    /*
+    2. Changing these values in a child process didn't change them in the parent.
+    So stack, global and heap get copied on fork, but they share different physical spaces.
+    However, they have the same virtual addresses.
+    */
 
     printf("Elapsed time = %f seconds.\n", stop - start);
 
