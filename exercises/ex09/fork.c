@@ -12,13 +12,18 @@ License: MIT License https://opensource.org/licenses/MIT
 #include <errno.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <wait.h>
+#include <sys/wait.h>
 
+/*
+2. Stack and heap get copied on fork, but they share different physical spaces.
+However, they have the same virtual addresses.
+*/
 
 // errno is an external global variable that contains
 // error information
 extern int errno;
 
+int global_var = -1;
 
 // get_seconds returns the number of seconds since the
 // beginning of the day, with microsecond precision
@@ -33,6 +38,7 @@ double get_seconds() {
 void child_code(int i)
 {
     sleep(i);
+    
     printf("Hello from child %d.\n", i);
 }
 
@@ -45,6 +51,10 @@ int main(int argc, char *argv[])
     pid_t pid;
     double start, stop;
     int i, num_children;
+
+    int static_var = -1;
+    int *heap_var_ptr = (int*) malloc(sizeof(int));
+    *heap_var_ptr = -1;
 
     // the first command-line argument is the name of the executable.
     // if there is a second, it is the number of children to create.
@@ -73,6 +83,9 @@ int main(int argc, char *argv[])
         /* see if we're the parent or the child */
         if (pid == 0) {
             child_code(i);
+            static_var = i;
+            global_var = i;
+            *heap_var_ptr = i;
             exit(i);
         }
     }
@@ -95,6 +108,9 @@ int main(int argc, char *argv[])
     }
     // compute the elapsed time
     stop = get_seconds();
+
+    printf("global: %i, static: %i, heap: %i\n", global_var, static_var, *heap_var_ptr);
+
     printf("Elapsed time = %f seconds.\n", stop - start);
 
     exit(0);
