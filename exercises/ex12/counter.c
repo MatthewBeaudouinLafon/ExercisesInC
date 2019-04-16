@@ -3,13 +3,62 @@
 Copyright 2014 Allen Downey
 License: GNU GPLv3
 
+2.
+│
+main
+|
+|\_________________
+|                  \
+|\___________       |
+|            \    child
+|             |    code
+|\____      child   |
+|     \      code   |
+X      |      |     |
+     child    |     |
+      code    |     |
+       |      |     |
+       |      |     |
+join  /       |     |
+|    /       /      |
+|___/       /      /
+|__________/      /
+|________________/
+|
+
+Result seems consistently correct, though the printed value is not consistent.
+
+3. The threads sure seem to be concurrent, but the result is good.
+
+counter = 0
+counter = 1
+counter = 2
+counter = 0
+counter = 0
+counter = 5
+counter = 5
+counter = 1
+counter = 7
+counter = 3
+counter = 10
+counter = 3
+counter = 0
+counter = 0
+counter = 0
+counter = 12
+counter = 15
+counter = 14
+counter = 15
+counter = 4
+Final value of counter is 20
+
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 
-#define NUM_CHILDREN 5
+#define NUM_CHILDREN 20
 
 /* Print an error message and exit.
 */

@@ -4,14 +4,38 @@ Copyright 2014 Allen Downey
 License: GNU GPLv3
 
 2. There are 29887 errors. So yes. There seem to be sync errors.
+3. Wow seems to work!
+4. 
+Results
+___________________________________________________________
+matthews-mbp:ex12 mattbl$ time ./counter_array
+181620 errors.
 
+real    0m0.054s
+user    0m0.085s
+sys     0m0.005s
+
+matthews-mbp:ex12 mattbl$ time ./counter_array_mutex
+0 errors.
+
+real    0m0.065s
+user    0m0.044s
+sys     0m0.054s
+___________________________________________________________
+
+Looks like sys time jumped from 0.005 to 0.054, which is rather significant overhead time.
+user-time is better, so it seems like running in parallel was effective.
+However it did take more real time so, that's unfortunate.
+    Not to mention that counter_array has to make about 20% more calculations due to sync errors.
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "mutex.h"
 
 #define NUM_CHILDREN 2
+Mutex *mutex = NULL;
 
 void perror_exit(char *s)
 {
@@ -77,8 +101,10 @@ void child_code(Shared *shared)
         if (shared->counter >= shared->end) {
             return;
         }
+        mutex_lock(mutex);
         shared->array[shared->counter]++;
         shared->counter++;
+        mutex_unlock(mutex);
 
         // if (shared->counter % 10000 == 0) {
         //     printf("%d\n", shared->counter);
@@ -111,6 +137,8 @@ int main()
 {
     int i;
     pthread_t child[NUM_CHILDREN];
+
+    mutex = make_mutex();
 
     Shared *shared = make_shared(1000000);
 
