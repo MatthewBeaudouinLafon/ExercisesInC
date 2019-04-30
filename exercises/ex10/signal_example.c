@@ -20,6 +20,32 @@ Based on an example in Head First C.
 
 int score = 0;
 
+void queue_and_ay() {
+    int a, b, answer;
+    char txt[4];
+
+    // pose the question
+    a = rand() % 11;
+    b = rand() % 11;
+    printf("\nWhat is %d times %d? ", a, b);
+
+    // set (or reset) the alarm
+    alarm(5);
+
+    // get the answer
+    char *ret = fgets(txt, 4, stdin);
+    answer = atoi(txt);
+
+    // check the answer
+    if (answer == a * b) {
+        printf("\nRight!\n");
+        score++;
+    } else {
+        printf("\nWrong!\n");
+    }
+    printf("Score: %i\n", score);
+}
+
 /* Set up a signal handler.
 
    sig: signal number
@@ -45,13 +71,12 @@ void end_game(int sig)
 */
 void times_up(int sig) {
     puts("\nTIME'S UP!");
+    queue_and_ay();
     raise(SIGINT);
 }
 
-int main(void) {
-    int a, b, answer;
-    char txt[4];
 
+int main(void) {
     // when the alarm goes off, call times_up
     catch_signal(SIGALRM, times_up);
 
@@ -62,26 +87,7 @@ int main(void) {
     srandom((unsigned int) time(NULL));
 
     while(1) {
-        // pose the question
-        a = rand() % 11;
-        b = rand() % 11;
-        printf("\nWhat is %d times %d? ", a, b);
-
-        // set (or reset) the alarm
-        alarm(5);
-
-        // get the answer
-	    char *ret = fgets(txt, 4, stdin);
-        answer = atoi(txt);
-
-        // check the answer
-        if (answer == a * b) {
-            printf("\nRight!\n");
-            score++;
-        } else {
-            printf("\nWrong!\n");
-        }
-        printf("Score: %i\n", score);
+        queue_and_ay();
     }
     return 0;
 }
