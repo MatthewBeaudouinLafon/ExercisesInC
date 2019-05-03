@@ -10,6 +10,12 @@ Note: this version leaks memory.
 
 */
 
+////////////////////////////////////////////////
+// I can't install valgrind on my mac         //
+// so I used the next best thing: mindgrind.  //
+////////////////////////////////////////////////
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -48,9 +54,16 @@ void kv_printor (gpointer key, gpointer value, gpointer user_data)
 void accumulator(gpointer key, gpointer value, gpointer user_data)
 {
     GSequence *seq = (GSequence *) user_data;
+
+    // Duplicate data for sequence for easy cleanup
+    GString *string_dupe = g_string_new(key);
+
     Pair *pair = g_new(Pair, 1);
-    pair->word = (gchar *) key;
+    pair->word = string_dupe->str;
     pair->freq = *(gint *) value;
+
+    // pair->word = (gchar *) key;  // TODO: dup here
+    // pair->freq = *(gint *) value;
 
     g_sequence_insert_sorted(seq,
         (gpointer) pair,
@@ -58,18 +71,42 @@ void accumulator(gpointer key, gpointer value, gpointer user_data)
         NULL);
 }
 
-/* Increments the frequency associated with key. */
+/* Increments the frequency associated with key. 
+
+Duplicates the key and value on the heap. Don't forget to free.
+*/
 void incr(GHashTable* hash, gchar *key)
 {
-    gint *val = (gint *) g_hash_table_lookup(hash, key);
+    // Duplicate string for easier freeing later.
+    // GString *string_dupe = g_strdup(key);
+    // gchar *key_dupe = string_dupe->str;
+
+
+    gchar *key_dupe = g_strdup(key);
+
+    gint *val = (gint *) g_hash_table_lookup(hash, key_dupe);
 
     if (val == NULL) {
         gint *val1 = g_new(gint, 1);
         *val1 = 1;
-        g_hash_table_insert(hash, key, val1);
+        g_hash_table_insert(hash, key_dupe, val1);
     } else {
         *val += 1;
     }
+}
+
+/* Iterator that frees key and value. */
+void key_value_destroyer(gpointer key, gpointer value, gpointer user_data) {
+    g_free(key);
+    g_free(value);
+}
+
+/* Iterator that destroys pairs. */
+void pair_destroyer(gpointer value, gpointer user_data)
+{
+    Pair *pair = (Pair *) value;
+    g_free(pair->word);
+    free(pair);
 }
 
 int main(int argc, char** argv)
@@ -100,10 +137,12 @@ int main(int argc, char** argv)
         gchar *res = fgets(line, sizeof(line), fp);
         if (res == NULL) break;
 
+        // returns null terminated array of newly allocated strings. 
         array = g_strsplit(line, " ", 0);
         for (int i=0; array[i] != NULL; i++) {
-            incr(hash, array[i]);
+            incr(hash, array[i]); // Allocates g_int for new strings
         }
+        g_strfreev(array);
     }
     fclose(fp);
 
@@ -117,7 +156,10 @@ int main(int argc, char** argv)
     // iterate the sequence and print the pairs
     g_sequence_foreach(seq, (GFunc) pair_printor, NULL);
 
-    // try (unsuccessfully) to free everything
+    // Free the contents of hash and sequence, then the data structures themselves
+    g_hash_table_foreach(hash, (GHFunc) key_value_destroyer, NULL);
+    g_sequence_foreach(seq, (GFunc) pair_destroyer, NULL);
+
     g_hash_table_destroy(hash);
     g_sequence_free(seq);
 

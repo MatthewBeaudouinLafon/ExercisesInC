@@ -164,6 +164,18 @@ int insert_by_index(Node **head, int val, int index) {
     return 0;
 }
 
+/* Free linked list
+*/
+void free_list(Node **head) {
+    Node *node = *head;
+    
+    while (node != NULL) {
+        Node *next_node = node->next;
+        free(node);
+        node = next_node;
+    }
+}
+
 /* Makes a mysterious data structure.
 */
 Node *make_something() {
@@ -176,6 +188,7 @@ Node *make_something() {
     node3->next = node2;
 
     return node3;
+    //|3|->|1|->|2|
 }
 
 
@@ -197,6 +210,7 @@ int main() {
 
     printf("test_list\n");
     print_list(&test_list);
+    free_list(&test_list);
 
     // make an empty list
     printf("empty\n");
@@ -205,9 +219,10 @@ int main() {
     // add an element to the empty list
     insert_by_index(&empty, 1, 0);
     print_list(&empty);
+    free_list(&empty);
 
     Node *something = make_something();
-    free(something);
+    free_list(something);
 
     return 0;
 }
